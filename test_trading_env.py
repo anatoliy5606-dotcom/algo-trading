@@ -44,8 +44,8 @@ def test_trading_env():
     # Create environment
     env = CryptoTradingEnv(df, initial_balance=10000, lookback_window=100)
 
-    # Reset environment
-    obs = env.reset()
+    # Reset environment (Gymnasium: returns (obs, info))
+    obs, _ = env.reset()
     print(f"Initial observation shape: {obs.shape}")
     print(f"Action space: {env.action_space}")
     print(f"Observation space: {env.observation_space}")
@@ -60,8 +60,9 @@ def test_trading_env():
         action = np.random.randint(0, 3)
         actions_taken.append(action)
 
-        # Take step
-        obs, reward, done, info = env.step(action)
+        # Take step (Gymnasium: obs, reward, terminated, truncated, info)
+        obs, reward, terminated, truncated, info = env.step(action)
+        done = terminated or truncated
 
         total_reward += reward
 
@@ -82,7 +83,7 @@ def test_trading_env():
 
     # Test environment reset
     print("\nTesting environment reset...")
-    obs2 = env.reset()
+    obs2, _ = env.reset()
     print(f"Reset observation shape: {obs2.shape}")
     print("Environment reset successful!")
 

@@ -3,17 +3,17 @@ Custom RL environment for cryptocurrency trading.
 Based on the paper's environment design with buy/hold/sell actions.
 """
 
-import gym
 import numpy as np
 import pandas as pd
-from gym import spaces
+import gymnasium as gym
+from gymnasium import spaces
 import logging
 
 logger = logging.getLogger(__name__)
 
 class CryptoTradingEnv(gym.Env):
     """
-    Custom OpenAI Gym environment for cryptocurrency trading.
+    Custom Gymnasium environment for cryptocurrency trading.
     The agent can take three actions: Buy, Hold, Sell.
     """
 
@@ -70,7 +70,13 @@ class CryptoTradingEnv(gym.Env):
         self.net_worth = self.initial_balance
         self.prev_net_worth = self.initial_balance
 
-        return self._get_observation()
+        # Gymnasium API: reset() returns (observation, info)
+        return self._get_observation(), {}
+
+    def seed(self, seed=None):
+        """Seed the random number generator (Gymnasium backward-compat)."""
+        np.random.seed(seed)
+        return [seed]
 
     def step(self, action):
         """
@@ -119,7 +125,8 @@ class CryptoTradingEnv(gym.Env):
             'step': self.current_step
         }
 
-        return obs, reward, done, info
+        # Gymnasium API: step() returns (obs, reward, terminated, truncated, info)
+        return obs, reward, done, False, info
 
     def _buy_crypto(self, price):
         """Execute buy action"""
@@ -209,15 +216,16 @@ if __name__ == "__main__":
         # Create environment
         env = CryptoTradingEnv(df, initial_balance=10000, lookback_window=100)
 
-        # Reset environment
-        obs = env.reset()
+        # Reset environment (Gymnasium: returns (obs, info))
+        obs, _ = env.reset()
         print(f"Initial observation shape: {obs.shape}")
 
         # Test a few steps
         total_reward = 0
         for i in range(10):
             action = np.random.randint(0, 3)  # Random action
-            obs, reward, done, info = env.step(action)
+            obs, reward, terminated, truncated, info = env.step(action)
+            done = terminated or truncated
 
             total_reward += reward
             print(f"Step {i+1}:")
